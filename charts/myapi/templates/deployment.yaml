@@ -13,8 +13,11 @@ spec:
       {{- include "myapi.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        # https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -38,6 +41,12 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: {{ toYaml .Values.command  | nindent 10 }}
           args: {{ toYaml .Values.args | nindent 10 }}
+          env:
+            - name: PASSCODE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "myapi.fullname" . }}
+                  key: passcode
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}

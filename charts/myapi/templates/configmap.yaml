@@ -6,13 +6,14 @@ metadata:
     {{- include "myapi.labels" . | nindent 4 }}
 data:
   main.py: |
+    import os
     from fastapi import FastAPI
 
     app = FastAPI()
 
     @app.get("/")
     def read_root():
-        return {"Hello": "World"}
+        return {"Hello": f"Your pass code is {os.environ.get('PASSCODE')}"}
 
     @app.get("/hello/{user}")
     def hello(user: str):
